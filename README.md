@@ -16,10 +16,17 @@ Read a text file:
 desfr read filename.txt
 ```
 
+Read and render a markdown file:
+
+```bash
+desfr read filename.md
+```
+
 You can also provide an absolute path:
 
 ```bash
 desfr read /path/to/filename.txt
+desfr read /path/filename.md
 ```
 
-Currently supports `.txt` files.
+Currently supports `.txt` and `.md` files.
