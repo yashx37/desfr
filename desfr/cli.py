@@ -1,5 +1,7 @@
 import argparse
 from pathlib import Path
+from rich.console import Console
+from rich.markdown import Markdown
 
 def main():
     parser = argparse.ArgumentParser(
@@ -13,11 +15,13 @@ def main():
 
     args = parser.parse_args()
 
+    console = Console()
+
     if args.command == "read":
         file = Path(args.filename)
         
-        if file.suffix.lower() != ".txt":
-                    parser.error("Error: Only text files are supported for now")
+        if file.suffix.lower() not in {".txt", ".md"}:
+                    parser.error("Error: Only text and markdown files are supported.")
         
         if not file.exists():
             parser.error(f"Error: The File '{args.filename}' does not exist")
@@ -25,7 +29,11 @@ def main():
         try:   
             content = file.read_text(encoding="utf-8")
 
-            print(content, end="")
+            if file.suffix.lower() == ".md":
+                 console.print(Markdown(content))
+            else:
+                print(content, end="")
+                
         except OSError as e:
             parser.error(f"Cannot read file: {e}")
 
