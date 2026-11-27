@@ -22,11 +22,23 @@ def load_session():
     if not session_path.exists():
         return None
 
-    with session_path.open("r", encoding="utf-8") as f:
+    try:
+        with session_path.open("r", encoding="utf-8") as f:
 
-        session_data = json.load(f)
+            session_data = json.load(f)
 
-        return session_data.get("active_file")
+            if not isinstance(session_data, dict):
+                return None
+
+            active_file = session_data.get("active_file")
+
+            if not isinstance(active_file, str) or not active_file.strip():
+                return None
+
+            return active_file
+
+    except (json.JSONDecodeError, OSError):
+            return None
 
 def clear_session():
     session_path = get_session_path()
