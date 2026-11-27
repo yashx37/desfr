@@ -1,0 +1,35 @@
+import json
+from pathlib import Path
+
+def get_session_path():
+    return Path.home() / ".desfr" / "session.json"
+
+def save_session(file_path):
+    session_path = get_session_path()
+
+    session_path.parent.mkdir(parents=True, exist_ok=True)
+
+    session_data = {
+        "active_file": str(Path(file_path).resolve())
+    }
+
+    with session_path.open("w", encoding="utf-8") as f:
+        json.dump(session_data, f, indent=4)
+
+def load_session():
+    session_path = get_session_path()
+
+    if not session_path.exists():
+        return None
+
+    with session_path.open("r", encoding="utf-8") as f:
+
+        session_data = json.load(f)
+
+        return session_data.get("active_file")
+
+def clear_session():
+    session_path = get_session_path()
+
+    if session_path.exists():
+        session_path.unlink()
