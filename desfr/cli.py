@@ -2,7 +2,8 @@ import argparse
 from pathlib import Path
 from rich.console import Console
 from rich.markdown import Markdown
-from desfr.session import save_session
+from desfr.session import save_session, load_session
+from desfr.markdown import extract_headings, number_headings
 
 def main():
     parser = argparse.ArgumentParser(
@@ -16,6 +17,9 @@ def main():
 
     enter_parser = subparsers.add_parser("enter", help="Open a markdown document session")
     enter_parser.add_argument("filename")
+
+    toc_parser = subparsers.add_parser("toc", help="Display the active document's Table of Contents")
+
 
     args = parser.parse_args()
 
@@ -32,9 +36,31 @@ def main():
 
          print(f'Entered: {file.resolve()}')
 
-        
-        
-         
+    if args.command == "toc":
+        active_file = load_session()
+
+        if active_file is None:
+             parser.error("No active document. Enter a file first. Type desfr -h for help.")
+        file = Path(active_file)
+
+        if not file.exists():
+             parser.error("The active document no longer exists.")
+
+        content = file.read_text(encoding="utf-8")
+
+        headings = extract_headings(content)
+        headings = number_headings(headings)
+
+        if not headings:
+             print("No Markdown headings found.")
+             return
+
+        for heading in headings:
+             indent = " " * (heading["level"]-1)
+
+             console.print(
+                  f"{indent}[bold][{heading['number']}][/bold] {heading['title']}"
+            )
 
     if args.command == "read":
         file = Path(args.filename)
