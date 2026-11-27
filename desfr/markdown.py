@@ -38,3 +38,26 @@ def number_headings(headings):
         heading["number"] = ".".join(str(counters[i]) for i in range(level))
 
     return headings
+
+def extract_section(content, headings, section_number):
+    target = next( 
+        (h for h in headings if h["number"] == section_number), None
+        )
+
+    if target is None:
+        return None
+
+    lines = content.splitlines()
+
+    start = target["line"]-1
+    end = len(lines)
+
+    for heading in headings:
+        if heading["line"] <= target["line"]:
+            continue
+
+        if heading["level"] <= target["level"]:
+            end = heading["line"]-1
+            break
+
+    return "\n".join(lines[start:end])

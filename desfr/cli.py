@@ -2,8 +2,8 @@ import argparse
 from pathlib import Path
 from rich.console import Console
 from rich.markdown import Markdown
-from desfr.session import save_session, load_session
-from desfr.markdown import extract_headings, number_headings
+from desfr.session import save_session, load_session, clear_session
+from desfr.markdown import extract_headings, number_headings, extract_section
 
 def main():
     parser = argparse.ArgumentParser(
@@ -19,6 +19,11 @@ def main():
     enter_parser.add_argument("filename")
 
     toc_parser = subparsers.add_parser("toc", help="Display the active document's Table of Contents")
+
+    show_parser = subparsers.add_parser("show", help="Display a section of the active document")
+    show_parser.add_argument("section", help="Section number, e.g. 1 or 1.1 of any nesting level")
+
+    exit_parser = subparsers.add_parser("exit", help="Close the active document section")
 
 
     args = parser.parse_args()
@@ -62,6 +67,39 @@ def main():
                   f"{indent}[bold][{heading['number']}][/bold] {heading['title']}"
             )
 
+    if args.command == "show":
+         active_file = load_session()
+
+         if active_file is None:
+              parser.error("No active document. Enter a document first. Type desfr --help")
+
+         file = Path(active_file)
+
+         if not file.exists():
+              parser.error("The active document no longer exists")
+
+         content = file.read_text(encoding="utf-8")
+
+         headings = extract_headings(content)
+         headings = number_headings(headings)
+
+         section = extract_section(content, headings, args.section)
+
+         if section is None:
+              parser.error(f"Section '{args.section}' not found.")
+
+         console.print(Markdown(section))
+         return
+         
+    if args.command == "exit":
+         if load_session() is None:
+              print("No active document session.")
+              return
+
+         clear_session()
+         print("Document session closed.")
+         return
+    
     if args.command == "read":
         file = Path(args.filename)
         
@@ -82,5 +120,6 @@ def main():
         except OSError as e:
             parser.error(f"Cannot read file: {e}")
 
+    
 if __name__ == "__main__":
     main()
