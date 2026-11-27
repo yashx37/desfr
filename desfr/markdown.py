@@ -3,8 +3,17 @@ import re
 def extract_headings(content):
     headings = []
     document_title_found = False
+    inside_code_block = False
 
     for line_number, line in enumerate(content.splitlines(), start=1):
+
+        if line.strip().startswith(("```", "~~~")):
+            inside_code_block = not inside_code_block
+            continue
+
+        if inside_code_block:
+            continue
+        
         match = re.match(r"^(#{1,6})\s+(.+?)\s*#*\s*$", line)
 
         if match:
